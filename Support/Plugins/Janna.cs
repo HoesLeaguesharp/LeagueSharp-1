@@ -14,7 +14,7 @@
     {
         public Janna()
         {
-            this.Q = new Spell(SpellSlot.Q, 1100);
+            this.Q = new Spell(SpellSlot.Q, 850);
             this.W = new Spell(SpellSlot.W, 600);
             this.E = new Spell(SpellSlot.E, 800);
             this.R = new Spell(SpellSlot.R, 550);
