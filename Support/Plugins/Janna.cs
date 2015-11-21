@@ -23,7 +23,44 @@
             GameObject.OnCreate += this.TowerAttackOnCreate;
             GameObject.OnCreate += this.RangeAttackOnCreate;
             Obj_AI_Base.OnProcessSpellCast += this.OnProcessSpellCast;
+            Obj_AI_Base.OnDoCast += OnDoCast;
+            GameObject.OnDelete += OnDelete;
+            Obj_AI_Base.OnIssueOrder += OnOrder;
         }
+
+        private void OnOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
+        {
+            if (!sender.IsMe) return;
+
+            if (!Channeling) return;
+
+            if (args.Order == GameObjectOrder.MoveTo || args.Order == GameObjectOrder.AttackTo ||
+                args.Order == GameObjectOrder.AttackUnit || args.Order == GameObjectOrder.AutoAttack)
+            {
+                args.Process = false;
+            }
+        }
+
+        private void OnDelete(GameObject sender, EventArgs args)
+        {
+            if (sender.Name.Contains("ReapThe"))
+            {
+                Channeling = false;
+            }
+        }
+
+        private void OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
+        {
+          //  Game.PrintChat(args.SData.Name);
+            if (!sender.IsMe) return;
+
+            if (args.SData.Name == "ReapTheWhirlwind")
+            {
+                Channeling = true;
+            }
+        }
+
+        public bool Channeling { get; set; }
 
         private bool IsUltChanneling { get; set; }
 
@@ -32,6 +69,7 @@
         public override void ComboMenu(Menu config)
         {
             config.AddBool("Combo.Q", "Use Q", true);
+            config.AddSlider("Combo.Q.Range", "Minimum Range For Q", 800, 100, 900);
             config.AddBool("Combo.W", "Use W", true);
             config.AddBool("Combo.R", "Use R", true);
             config.AddSlider("Combo.R.Health", "Health to Ult", 15, 1, 100);
@@ -56,7 +94,7 @@
             config.AddSlider("Mana.E.Priority.1", "E Priority 1", 65, 0, 100);
             config.AddSlider("Mana.E.Priority.2", "E Priority 2", 35, 0, 100);
             config.AddSlider("Mana.E.Priority.3", "E Priority 3", 10, 0, 100);
-        }
+        }   
 
         public override void MiscMenu(Menu config)
         {
@@ -89,6 +127,7 @@
             if (this.Q.CastCheck(gapcloser.Sender, "Gapcloser.Q"))
             {
                 var pred = this.Q.GetPrediction(gapcloser.Sender);
+                
                 if (pred.Hitchance >= HitChance.Medium)
                 {
                     this.Q.Cast(pred.CastPosition);
@@ -132,27 +171,25 @@
         {
             try
             {
-                if (this.Player.IsChannelingImportantSpell())
-                {
-                    return;
-                }
-
-                if (this.IsUltChanneling)
-                {
-                    this.Orbwalker.SetAttack(true);
-                    this.Orbwalker.SetMovement(true);
-                    this.IsUltChanneling = false;
-                }
+                if (Channeling) return;
+                //if (Channeling)
+                //{
+                //    this.Orbwalker.SetAttack(Channeling);
+                //    this.Orbwalker.SetMovement(Channeling);
+                //}
 
                 if (this.ComboMode)
                 {
                     if (this.Q.CastCheck(this.Target, "Combo.Q"))
                     {
                         var pred = this.Q.GetPrediction(this.Target);
-                        if (pred.Hitchance >= HitChance.High)
+                        if (Player.Distance(Target) < ConfigValue<Slider>("Combo.Q.Range").Value)
                         {
-                            this.Q.Cast(pred.CastPosition);
-                            this.Q.Cast();
+                            if (pred.Hitchance >= HitChance.High)
+                            {
+                                this.Q.Cast(pred.CastPosition);
+                                this.Q.Cast();
+                            }
                         }
                     }
 
