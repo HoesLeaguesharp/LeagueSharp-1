@@ -20,44 +20,10 @@
             this.R = new Spell(SpellSlot.R, 550);
 
             this.Q.SetSkillshot(0.25f, 120f, 900f, false, SkillshotType.SkillshotLine);
+              this.R.SetCancellableSpellCast("ReapTheWhirlwind", "ReapTheWhirlwind_green_cas.troy", true, false);
             GameObject.OnCreate += this.TowerAttackOnCreate;
             GameObject.OnCreate += this.RangeAttackOnCreate;
             Obj_AI_Base.OnProcessSpellCast += this.OnProcessSpellCast;
-            Obj_AI_Base.OnDoCast += OnDoCast;
-            GameObject.OnDelete += OnDelete;
-            Obj_AI_Base.OnIssueOrder += OnOrder;
-        }
-
-        private void OnOrder(Obj_AI_Base sender, GameObjectIssueOrderEventArgs args)
-        {
-            if (!sender.IsMe) return;
-
-            if (!Channeling) return;
-
-            if (args.Order == GameObjectOrder.MoveTo || args.Order == GameObjectOrder.AttackTo ||
-                args.Order == GameObjectOrder.AttackUnit || args.Order == GameObjectOrder.AutoAttack)
-            {
-                args.Process = false;
-            }
-        }
-
-        private void OnDelete(GameObject sender, EventArgs args)
-        {
-            if (sender.Name.Contains("ReapThe"))
-            {
-                Channeling = false;
-            }
-        }
-
-        private void OnDoCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
-        {
-          //  Game.PrintChat(args.SData.Name);
-            if (!sender.IsMe) return;
-
-            if (args.SData.Name == "ReapTheWhirlwind")
-            {
-                Channeling = true;
-            }
         }
 
         public bool Channeling { get; set; }
@@ -171,12 +137,6 @@
         {
             try
             {
-                if (Channeling) return;
-                //if (Channeling)
-                //{
-                //    this.Orbwalker.SetAttack(Channeling);
-                //    this.Orbwalker.SetMovement(Channeling);
-                //}
 
                 if (this.ComboMode)
                 {
@@ -221,12 +181,12 @@
 
         private void OnProcessSpellCast(Obj_AI_Base sender, GameObjectProcessSpellCastEventArgs args)
         {
-            if (sender.IsMe && args.SData.Name == "ReapTheWhirlwind")
-            {
-                this.Orbwalker.SetAttack(false);
-                this.Orbwalker.SetMovement(false);
-                this.IsUltChanneling = true;
-            }
+            //if (sender.IsMe && args.SData.Name == "ReapTheWhirlwind")
+            //{
+            //    this.Orbwalker.SetAttack(false);
+            //    this.Orbwalker.SetMovement(false);
+            //    this.IsUltChanneling = true;
+            //}
 
             if (!this.E.IsReady() || !this.E.IsInRange(sender))
             {
@@ -272,7 +232,7 @@
 
         private void RangeAttackOnCreate(GameObject sender, EventArgs args)
         {
-            if (!sender.IsValid<MissileClient>() && !this.E.IsReady())
+            if (!sender.IsValid<MissileClient>() || !this.E.IsReady())
             {
                 return;
             }
